@@ -16,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/adamgrharvey/tinyapp/issues"
   },
-  "homepage": "https://github.com/adamgrharvey/tinyapp#readme"
+  "homepage": "https://github.com/adamgrharvey/tinyapp#readme",
+  "dependencies": {
+    "ejs": "^3.1.8"
+  }
 }
