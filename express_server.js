@@ -2,6 +2,8 @@ const express = require("express");
 const app = express();
 const PORT = 8080;
 
+app.set("view engine", "ejs");
+
 const urlDatabase = {
   "b088yB34m": "http://www.lighthouselabs.ca",
   "600613": "http://www.google.com"
@@ -19,6 +21,11 @@ app.get("/urls.json", (req, res) => {
 app.get("/urls", (req, res) => {
   const templateVars = { urls: urlDatabase };
   res.render("urls_index", templateVars);
+});
+
+app.get("/urls/:id", (req, res) => {
+  const templateVars = { id: req.params.id, longURL: urlDatabase[req.params.id] };
+  res.render("urls_show", templateVars);
 });
 
 app.get("/hello", (req, res) => {
