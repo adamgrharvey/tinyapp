@@ -36,11 +36,17 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
 });
 
+// POST
 app.post("/urls", (req, res) => {
   let shortURL = generateRandomString();
   urlDatabase[shortURL] = req.body.longURL;
   res.redirect(`/urls/${shortURL}`);
-  //
+  
+});
+
+app.post("/urls/:id/delete", (req, res) => {
+  delete urlDatabase[req.params.id];
+  res.redirect("/urls");
 });
 
 app.get("/urls/new", (req, res) => {
