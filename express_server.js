@@ -23,6 +23,11 @@ app.get('/', (req, res) => {
   res.send("hello!");
 });
 
+app.get('/register', (req, res) => {
+  const templateVars = {};
+  res.render("register", templateVars);
+});
+
 
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
