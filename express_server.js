@@ -11,8 +11,8 @@ function generateRandomString() {
 }
 
 const urlDatabase = {
-  "b088yB34m": "http://www.lighthouselabs.ca",
-  "600613": "http://www.google.com"
+  "3jd86d": "http://www.lighthouselabs.ca",
+  "nvy8ws": "http://www.google.com"
 
 };
 
@@ -38,7 +38,7 @@ app.use(cookieParser())
 // POST
 //
 app.post("/urls/:id/delete", (req, res) => {
-  delete urlDatabase[req.params.user_id];
+  delete urlDatabase[req.params.id];
   res.redirect("/urls");
 });
 
@@ -62,14 +62,20 @@ app.post("/register", (req, res) => {
 });
 
 app.post("/urls/:id/", (req, res) => {
-  urlDatabase[req.params.user_id] = req.body.longURL
+  urlDatabase[req.params.id] = req.body.longURL
   res.redirect("/urls");
 });
 
 app.post("/urls", (req, res) => {
-  let shortURL = generateRandomString();
-  urlDatabase[shortURL] = req.body.longURL;
-  res.redirect(`/urls/${shortURL}`);
+  if (req.cookies.user_id === undefined) {
+    res.status(400).send('Login to shorten URLs.\n');
+  }
+  else {
+    let shortURL = generateRandomString();
+    urlDatabase[shortURL] = req.body.longURL;
+    res.redirect(`/urls/${shortURL}`);
+  }
+
 });
 
 app.post("/login", (req, res) => {
@@ -98,10 +104,16 @@ app.get('/', (req, res) => {
 });
 
 app.get('/register', (req, res) => {
-  const templateVars = {
-    user_id: userDatabase[req.cookies['user_id']],
-  };
-  res.render("register", templateVars);
+  if (req.cookies.user_id !== undefined) {
+    res.redirect("/urls");
+  }
+  else {
+    const templateVars = {
+      user_id: userDatabase[req.cookies['user_id']],
+    };
+    res.render("register", templateVars);
+  }
+
 });
 
 app.get("/urls.json", (req, res) => {
@@ -109,7 +121,7 @@ app.get("/urls.json", (req, res) => {
 });
 
 app.get("/u/:id", (req, res) => {
-  const longURL = urlDatabase[req.params.user_id];
+  const longURL = urlDatabase[req.params.id];
   if (longURL === undefined) {
     res.sendStatus(404);
   }
@@ -117,6 +129,7 @@ app.get("/u/:id", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
+  
   const templateVars = {
     user_id: userDatabase[req.cookies['user_id']],
     urls: urlDatabase
@@ -125,6 +138,9 @@ app.get("/urls", (req, res) => {
 });
 
 app.get("/urls/new", (req, res) => {
+  if (req.cookies.user_id === undefined) {
+    res.redirect("/login");
+  }
   const templateVars = { 
     user_id: userDatabase[req.cookies['user_id']],
     urls: urlDatabase
@@ -150,11 +166,17 @@ app.get("/hello", (req, res) => {
 });
 
 app.get('/login', (req, res) => {
-  const templateVars = { 
-    user_id: userDatabase[req.cookies['user_id']],
-    urls: urlDatabase
-  };
-  res.render("login", templateVars);
+
+  if (req.cookies.user_id !== undefined) {
+    res.redirect("/urls");
+  }
+  else {
+    const templateVars = { 
+      user_id: userDatabase[req.cookies['user_id']],
+      urls: urlDatabase
+    };
+    res.render("login", templateVars);
+  }
 });
 
 app.get('/logout', (req, res) => {
