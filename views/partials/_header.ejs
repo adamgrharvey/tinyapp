@@ -28,24 +28,12 @@
 
       </div>
     </div>
-    <% if (!username) { %>
-        <form class="form-inline" action="/login" method="POST">
-            <input
-              class="form-control"
-              type="text"
-
-              name="username"
-              placeholder="Username"
-              style="width: 200px; padding-right: 10px;"
-            />
-            <button type="submit" class="btn btn-info">Login</button>
-          </div>
-        </form>
-      </main>
+    <% if (!id) { %>
+      <a class="nav-item nav-link" href="/register">Register</a>
       <% }; %>
-    <% if (username) { %>
+    <% if (id) { %>
 
-      <a>Logged in as: <strong><%=username%></strong>!&nbsp;
+      <a>Logged in as: <strong><%=id.email%></strong>!&nbsp;
         <form action="/logout" method="GET">
           <button type="submit" class="btn btn-info">Logout</button> 
         </a>
