@@ -40,9 +40,6 @@ app.post("/register", (req, res) => {
     let randomID = String(generateRandomString());
     userDatabase[String(randomID)] = {'id': randomID, 'email': req.body.email, 'password': req.body.password};
     res.cookie('id', randomID);
-    // const templateVars = {
-    //   username: req.cookies['email'],
-    // };
     res.redirect("/urls");
     console.log(userDatabase);
   }
