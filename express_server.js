@@ -31,18 +31,29 @@ app.post("/urls/:id/delete", (req, res) => {
 });
 
 app.post("/register", (req, res) => {
-  
-  if (req.body.email === '' || req.body.password === '') {
-    res.clearCookie('email');
-    res.sendStatus(406);
-  } 
-  else {
-    let randomID = String(generateRandomString());
-    userDatabase[String(randomID)] = {'id': randomID, 'email': req.body.email, 'password': req.body.password};
-    res.cookie('id', randomID);
-    res.redirect("/urls");
-    console.log(userDatabase);
+  let val = Object.values(userDatabase);
+  let error = false;
+  // need to check if the email exists
+  for (let i = 0; i < val.length; i++) {
+    if (val[i].email === req.body.email) {
+      error = true;
+      res.sendStatus(406);
+    }
   }
+  if (!error) {
+    if (req.body.email === '' || req.body.password === '') {
+      res.clearCookie('email');
+      res.sendStatus(400);
+    } 
+    else {
+      let randomID = String(generateRandomString());
+      userDatabase[String(randomID)] = {'id': randomID, 'email': req.body.email, 'password': req.body.password};
+      res.cookie('id', randomID);
+      res.redirect("/urls");
+      console.log(userDatabase);
+    }
+  }
+
 });
 
 app.post("/urls/:id/", (req, res) => {
@@ -57,8 +68,24 @@ app.post("/urls", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
-  res.cookie('email', req.body.email);
-  res.redirect("/urls");
+  let val = Object.values(userDatabase);
+  let error = true;
+  // need to check if the email exists
+
+  for (let i = 0; i < val.length; i++) {
+    if (val[i].email === req.body.email && val[i].password === req.body.password) {
+      error = false;
+      res.cookie('id', val[i].id);
+      res.redirect("/urls");
+    }
+  }
+  // if it exists, ensure password matches.
+  // if it does, send cookie containing the ID
+  // and redirect.
+  // else 
+  if (error) {
+    res.sendStatus(406);
+  }
 });
 //
 // GET
@@ -88,7 +115,7 @@ app.get("/u/:id", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-
+ // console.log(userDatabase);
   const templateVars = {
     id: userDatabase[req.cookies['id']],
     urls: urlDatabase
