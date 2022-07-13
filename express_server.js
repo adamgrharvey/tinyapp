@@ -25,7 +25,7 @@ const findUser = function(email) {
   for (let i = 0; i < val.length; i++) {
     if (val[i].email === email) {
       // if we find the user, return that user object.
-      return userDatabase[val[i].id];
+      return userDatabase[val[i].user_id];
     }
   }
   // else return null;
@@ -38,7 +38,7 @@ app.use(cookieParser())
 // POST
 //
 app.post("/urls/:id/delete", (req, res) => {
-  delete urlDatabase[req.params.id];
+  delete urlDatabase[req.params.user_id];
   res.redirect("/urls");
 });
 
@@ -49,20 +49,20 @@ app.post("/register", (req, res) => {
     res.sendStatus(400);
   } else {
     if (req.body.email === '' || req.body.password === '') {
-      res.clearCookie('email');
+      res.clearCookie('user_id');
       res.sendStatus(400);
     } 
     else {
       let randomID = String(generateRandomString());
-      userDatabase[String(randomID)] = {'id': randomID, 'email': req.body.email, 'password': req.body.password};
-      res.cookie('id', randomID);
+      userDatabase[String(randomID)] = {'user_id': randomID, 'email': req.body.email, 'password': req.body.password};
+      res.cookie('user_id', randomID);
       res.redirect("/urls");
     }
   }
 });
 
 app.post("/urls/:id/", (req, res) => {
-  urlDatabase[req.params.id] = req.body.longURL
+  urlDatabase[req.params.user_id] = req.body.longURL
   res.redirect("/urls");
 });
 
@@ -79,15 +79,15 @@ app.post("/login", (req, res) => {
 let checkUser = findUser(req.body.email);
   if (checkUser !== null) {
     if (checkUser.email === req.body.email && checkUser.password === req.body.password) {
-      res.cookie('id', checkUser.id);
+      res.cookie('user_id', checkUser.user_id);
       res.redirect("/urls");
     }
     else {
-      res.sendStatus(406);
+      res.sendStatus(403);
     }
   }
   else {
-    res.sendStatus(406);
+    res.sendStatus(403);
   }
 });
 // //
@@ -99,7 +99,7 @@ app.get('/', (req, res) => {
 
 app.get('/register', (req, res) => {
   const templateVars = {
-    id: userDatabase[req.cookies['id']],
+    user_id: userDatabase[req.cookies['user_id']],
   };
   res.render("register", templateVars);
 });
@@ -109,7 +109,7 @@ app.get("/urls.json", (req, res) => {
 });
 
 app.get("/u/:id", (req, res) => {
-  const longURL = urlDatabase[req.params.id];
+  const longURL = urlDatabase[req.params.user_id];
   if (longURL === undefined) {
     res.sendStatus(404);
   }
@@ -118,7 +118,7 @@ app.get("/u/:id", (req, res) => {
 
 app.get("/urls", (req, res) => {
   const templateVars = {
-    id: userDatabase[req.cookies['id']],
+    user_id: userDatabase[req.cookies['user_id']],
     urls: urlDatabase
   };
   res.render("urls_index", templateVars);
@@ -126,7 +126,7 @@ app.get("/urls", (req, res) => {
 
 app.get("/urls/new", (req, res) => {
   const templateVars = { 
-    id: userDatabase[req.cookies['id']],
+    user_id: userDatabase[req.cookies['user_id']],
     urls: urlDatabase
   };
   res.render("urls_new", templateVars);
@@ -134,7 +134,7 @@ app.get("/urls/new", (req, res) => {
  
 app.get("/urls/:id", (req, res) => {
   const templateVars = {
-    id: userDatabase[req.cookies['id']],
+    user_id: userDatabase[req.cookies['user_id']],
     URLid: req.params.id,
     longURL: urlDatabase[req.params.id],
    };
@@ -143,7 +143,7 @@ app.get("/urls/:id", (req, res) => {
 
 app.get("/hello", (req, res) => {
   const templateVars = { 
-    id: userDatabase[req.cookies['id']],
+    user_id: userDatabase[req.cookies['user_id']],
     urls: urlDatabase
   };
   res.render("hello_world", templateVars);
@@ -151,14 +151,14 @@ app.get("/hello", (req, res) => {
 
 app.get('/login', (req, res) => {
   const templateVars = { 
-    id: userDatabase[req.cookies['id']],
+    user_id: userDatabase[req.cookies['user_id']],
     urls: urlDatabase
   };
   res.render("login", templateVars);
 });
 
 app.get('/logout', (req, res) => {
-  res.clearCookie('id');
+  res.clearCookie('user_id');
   res.redirect("/urls");
 });
 
