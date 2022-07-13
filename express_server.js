@@ -37,7 +37,7 @@ app.post("/register", (req, res) => {
   for (let i = 0; i < val.length; i++) {
     if (val[i].email === req.body.email) {
       error = true;
-      res.sendStatus(406);
+      res.sendStatus(400);
     }
   }
   if (!error) {
