@@ -20,6 +20,18 @@ const userDatabase = {
 
 };
 
+const findUser = function(email) {
+  let val = Object.values(userDatabase);
+  for (let i = 0; i < val.length; i++) {
+    if (val[i].email === email) {
+      // if we find the user, return that user object.
+      return userDatabase[val[i].id];
+    }
+  }
+  // else return null;
+  return null;
+}
+
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser())
 //
@@ -31,16 +43,11 @@ app.post("/urls/:id/delete", (req, res) => {
 });
 
 app.post("/register", (req, res) => {
-  let val = Object.values(userDatabase);
-  let error = false;
-  // need to check if the email exists
-  for (let i = 0; i < val.length; i++) {
-    if (val[i].email === req.body.email) {
-      error = true;
-      res.sendStatus(400);
-    }
-  }
-  if (!error) {
+  
+  // check if email exists, if it do, send error. else make it
+  if (findUser(req.body.email) !== null) {
+    res.sendStatus(400);
+  } else {
     if (req.body.email === '' || req.body.password === '') {
       res.clearCookie('email');
       res.sendStatus(400);
@@ -50,10 +57,8 @@ app.post("/register", (req, res) => {
       userDatabase[String(randomID)] = {'id': randomID, 'email': req.body.email, 'password': req.body.password};
       res.cookie('id', randomID);
       res.redirect("/urls");
-      console.log(userDatabase);
     }
   }
-
 });
 
 app.post("/urls/:id/", (req, res) => {
@@ -68,26 +73,24 @@ app.post("/urls", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
-  let val = Object.values(userDatabase);
-  let error = true;
-  // need to check if the email exists
 
-  for (let i = 0; i < val.length; i++) {
-    if (val[i].email === req.body.email && val[i].password === req.body.password) {
-      error = false;
-      res.cookie('id', val[i].id);
+//check if account exists and the password is correct, log them in
+// else make send them status 400.
+let checkUser = findUser(req.body.email);
+  if (checkUser !== null) {
+    if (checkUser.email === req.body.email && checkUser.password === req.body.password) {
+      res.cookie('id', checkUser.id);
       res.redirect("/urls");
     }
+    else {
+      res.sendStatus(406);
+    }
   }
-  // if it exists, ensure password matches.
-  // if it does, send cookie containing the ID
-  // and redirect.
-  // else 
-  if (error) {
+  else {
     res.sendStatus(406);
   }
 });
-//
+// //
 // GET
 //
 app.get('/', (req, res) => {
@@ -106,7 +109,6 @@ app.get("/urls.json", (req, res) => {
 });
 
 app.get("/u/:id", (req, res) => {
-  //console.log(req.body);
   const longURL = urlDatabase[req.params.id];
   if (longURL === undefined) {
     res.sendStatus(404);
@@ -115,7 +117,6 @@ app.get("/u/:id", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
- // console.log(userDatabase);
   const templateVars = {
     id: userDatabase[req.cookies['id']],
     urls: urlDatabase
