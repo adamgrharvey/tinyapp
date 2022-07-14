@@ -1,11 +1,12 @@
 const express = require("express");
 const cookieParser = require('cookie-parser');
+const bcrypt = require('bcryptjs');
 const app = express();
 const PORT = 8080;
 
 app.set("view engine", "ejs");
 
-function generateRandomString() {
+const generateRandomString = function() {
   let out = Math.random().toString(36).slice(2);
   return out.substring(0,6);
 }
@@ -69,7 +70,7 @@ app.post("/register", (req, res) => {
       res.sendStatus(400);
     } else {
       let randomID = String(generateRandomString());
-      userDatabase[String(randomID)] = {'user_id': randomID, 'email': req.body.email, 'password': req.body.password};
+      userDatabase[String(randomID)] = {'user_id': randomID, 'email': req.body.email, 'password': bcrypt.hashSync(req.body.password, 10)};
       res.cookie('user_id', randomID);
       res.redirect("/urls");
     }
@@ -108,7 +109,7 @@ app.post("/login", (req, res) => {
   // else make send them status 403.
   let checkUser = findUser(req.body.email);
   if (checkUser !== null) {
-    if (checkUser.email === req.body.email && checkUser.password === req.body.password) {
+    if (checkUser.email === req.body.email && bcrypt.compareSync(req.body.password, checkUser.password)) {
       res.cookie('user_id', checkUser.user_id);
       res.redirect("/urls");
     } else {
