@@ -3,13 +3,9 @@ const cookieSession = require('cookie-session');
 const bcrypt = require('bcryptjs');
 const app = express();
 const PORT = 8080;
+const helper = require('./helpers');
 
 app.set("view engine", "ejs");
-
-const generateRandomString = function() {
-  let out = Math.random().toString(36).slice(2);
-  return out.substring(0,6);
-}
 
 // our databases. empty to start with.
 const urlDatabase = {
@@ -18,37 +14,12 @@ const urlDatabase = {
 const userDatabase = {
 };
 
-const findUser = function(email, database) {
-  let val = Object.values(database);
-  for (let i = 0; i < val.length; i++) {
-    if (val[i].email === email) {
-      // if we find the user, return that user object.
-      return database[val[i].user_id];
-    }
-  }
-  // else return null;
-  return null;
-};
-
-const urlsForUser = function(id) {
-  let keys = Object.keys(urlDatabase);
-  let outObj = {};
-
-  for (const key of keys) {
-    if (urlDatabase[key].userID === id) {
-      outObj[key] = urlDatabase[key];
-    }
-  }
-  return outObj;
-
-};
-
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieSession({
   name: 'session',
   keys: ['wrath of the lich king 2: arthas remixxed'],
 
-}))
+}));
 //
 // POST
 //
@@ -66,14 +37,14 @@ app.post("/urls/:id/delete", (req, res) => {
 app.post("/register", (req, res) => {
   
   // check if email exists, if it do, send error. else make it
-  if (findUser(req.body.email) !== null) {
+  if (helper.getUserByEmail(req.body.email, userDatabase) !== null) {
     res.sendStatus(400);
   } else {
     if (req.body.email === '' || req.body.password === '') {
       req.session = null;
       res.sendStatus(400);
     } else {
-      let randomID = String(generateRandomString());
+      let randomID = String(helper.generateRandomString());
       userDatabase[String(randomID)] = {'user_id': randomID, 'email': req.body.email, 'password': bcrypt.hashSync(req.body.password, 10)};
       req.session.user_id = randomID;
       res.redirect("/urls");
@@ -95,9 +66,9 @@ app.post("/urls", (req, res) => {
     res.status(400).send('Login to shorten URLs.\n');
   } else {
     let currentIDs = Object.keys(urlDatabase);
-    let shortURL = generateRandomString();
+    let shortURL = helper.generateRandomString();
     while (currentIDs.includes(shortURL)) {
-      shortURL = generateRandomString();
+      shortURL = helper.generateRandomString();
     }
     urlDatabase[shortURL] = {};
     urlDatabase[shortURL].longURL = req.body.longURL;
@@ -111,7 +82,7 @@ app.post("/login", (req, res) => {
 
   //check if account exists and the password is correct, log them in
   // else make send them status 403.
-  let checkUser = findUser(req.body.email);
+  let checkUser = helper.getUserByEmail(req.body.email, userDatabase);
   if (checkUser !== null) {
     if (checkUser.email === req.body.email && bcrypt.compareSync(req.body.password, checkUser.password)) {
       req.session.user_id = checkUser.user_id;
@@ -147,16 +118,15 @@ app.get("/urls.json", (req, res) => {
 });
 
 app.get("/u/:id", (req, res) => {
-  
-  if (urlDatabase[longURL] === undefined) {
+  if (urlDatabase[req.params.id] === undefined) {
     res.sendStatus(404);
+  } else {
+    res.redirect(urlDatabase[req.params.id].longURL);
   }
-  const longURL = urlDatabase[req.params.id].longURL;
-  res.redirect(longURL);
 });
 
 app.get("/urls", (req, res) => {
-  let userURLS = urlsForUser(req.session.user_id);
+  let userURLS = helper.urlsForUser(req.session.user_id, urlDatabase);
   
   const templateVars = {
     user_id: userDatabase[req.session.user_id],
@@ -220,7 +190,7 @@ app.get('/login', (req, res) => {
 });
 
 app.get('/logout', (req, res) => {
-  req.session = null
+  req.session = null;
   res.redirect("/urls");
 });
 
