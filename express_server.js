@@ -1,5 +1,5 @@
 const express = require("express");
-const cookieParser = require('cookie-parser')
+const cookieParser = require('cookie-parser');
 const app = express();
 const PORT = 8080;
 
@@ -10,21 +10,11 @@ function generateRandomString() {
   return out.substring(0,6);
 }
 
+// our databases. empty to start with.
 const urlDatabase = {
-  // "3jd86d": 
-  //  {
-  //    longURL: "http://www.lighthouselabs.ca",
-  //    userID: ''
-  //   },
-  // "nvy8ws": 
-  //   { longURL: "http://www.google.com",
-  //     userID: ''
-  //   }
-
 };
 
 const userDatabase = {
-
 };
 
 const findUser = function(email) {
@@ -37,7 +27,7 @@ const findUser = function(email) {
   }
   // else return null;
   return null;
-}
+};
 
 const urlsForUser = function(id) {
   let keys = Object.keys(urlDatabase);
@@ -48,12 +38,12 @@ const urlsForUser = function(id) {
       outObj[key] = urlDatabase[key];
     }
   }
-return outObj;
+  return outObj;
 
-}
+};
 
 app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser())
+app.use(cookieParser());
 //
 // POST
 //
@@ -77,8 +67,7 @@ app.post("/register", (req, res) => {
     if (req.body.email === '' || req.body.password === '') {
       res.clearCookie('user_id');
       res.sendStatus(400);
-    } 
-    else {
+    } else {
       let randomID = String(generateRandomString());
       userDatabase[String(randomID)] = {'user_id': randomID, 'email': req.body.email, 'password': req.body.password};
       res.cookie('user_id', randomID);
@@ -88,8 +77,8 @@ app.post("/register", (req, res) => {
 });
 
 app.post("/urls/:id/", (req, res) => {
-  
-  urlDatabase[req.params.id].longURL = req.body.longURL
+
+  urlDatabase[req.params.id].longURL = req.body.longURL;
   urlDatabase[req.params.id].userID = req.cookies.user_id;
   res.redirect("/urls");
 });
@@ -99,8 +88,7 @@ app.post("/urls", (req, res) => {
 
   if (req.cookies.user_id === undefined) {
     res.status(400).send('Login to shorten URLs.\n');
-  }
-  else {
+  } else {
     let currentIDs = Object.keys(urlDatabase);
     let shortURL = generateRandomString();
     while (currentIDs.includes(shortURL)) {
@@ -116,19 +104,17 @@ app.post("/urls", (req, res) => {
 
 app.post("/login", (req, res) => {
 
-//check if account exists and the password is correct, log them in
-// else make send them status 400.
-let checkUser = findUser(req.body.email);
+  //check if account exists and the password is correct, log them in
+  // else make send them status 403.
+  let checkUser = findUser(req.body.email);
   if (checkUser !== null) {
     if (checkUser.email === req.body.email && checkUser.password === req.body.password) {
       res.cookie('user_id', checkUser.user_id);
       res.redirect("/urls");
-    }
-    else {
+    } else {
       res.sendStatus(403);
     }
-  }
-  else {
+  } else {
     res.sendStatus(403);
   }
 });
@@ -142,8 +128,7 @@ app.get('/', (req, res) => {
 app.get('/register', (req, res) => {
   if (req.cookies.user_id !== undefined) {
     res.redirect("/urls");
-  }
-  else {
+  } else {
     const templateVars = {
       user_id: userDatabase[req.cookies['user_id']],
     };
@@ -179,7 +164,7 @@ app.get("/urls/new", (req, res) => {
   if (req.cookies.user_id === undefined) {
     res.redirect("/login");
   }
-  const templateVars = { 
+  const templateVars = {
     user_id: userDatabase[req.cookies['user_id']],
     urls: urlDatabase
   };
@@ -193,27 +178,23 @@ app.get("/urls/:id", (req, res) => {
       user_id: userDatabase[req.cookies['user_id']],
       URLid: req.params.id,
       longURL: urlDatabase[req.params.id].longURL,
-     };
+    };
   
-     // only show page if this URL belongs to current user
-     // check if this URL.user_id === req.cookies.user_id
-     if (urlDatabase[req.params.id].userID === req.cookies.user_id) {
+    // only show page if this URL belongs to current user
+    // check if this URL.user_id === req.cookies.user_id
+    if (urlDatabase[req.params.id].userID === req.cookies.user_id) {
       res.render("urls_show", templateVars);
-     }
-     else {
+    } else {
       res.sendStatus(403);
-     }
-  }
-  else {
+    }
+  } else {
     res.sendStatus(404);
   }
 
-  
-  
 });
 
 app.get("/hello", (req, res) => {
-  const templateVars = { 
+  const templateVars = {
     user_id: userDatabase[req.cookies['user_id']],
     urls: urlDatabase
   };
@@ -224,9 +205,8 @@ app.get('/login', (req, res) => {
 
   if (req.cookies.user_id !== undefined) {
     res.redirect("/urls");
-  }
-  else {
-    const templateVars = { 
+  } else {
+    const templateVars = {
       user_id: userDatabase[req.cookies['user_id']],
       urls: urlDatabase
     };
