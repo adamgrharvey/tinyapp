@@ -28,14 +28,14 @@
 
       </div>
     </div>
-    <% if (!user_id) { %>
+    <% if (!user) { %>
       <a class="nav-item nav-link" href="/register">Register</a>
       <a>or</a>
       <a class="nav-item nav-link" href="/login">Login</a>
       <% }; %>
-    <% if (user_id) { %>
+    <% if (user) { %>
 
-      <a>Logged in as: <strong><%=user_id.email%></strong>!&nbsp;
+      <a>Logged in as: <strong><%=user.email%></strong>!&nbsp;
         <form action="/logout" method="GET">
           <button type="submit" class="btn btn-info">Logout</button> 
         </a>
