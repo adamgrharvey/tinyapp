@@ -18,6 +18,10 @@
   </head>
   <body>
     <%- include('partials/_header') %>
+    <% if (!user_id) { %>
+      <a class="nav-item nav-link" href="/login">Please login to view your URLs.</a>
+    <% } else { %>
+
     <main style="margin: 1em;">
       <h3>My URLs</h3>
       <table class="table">
@@ -33,7 +37,7 @@
           <% for (let id in urls) { %>
             <tr>
               <td><%= id %></td>
-              <td><%= urls[id] %></td>
+              <td><%= urls[id].longURL %></td>
               <td>
                 <form action="/urls/<%= id %>/" method="GET">
                   <button type="submit" class="btn btn-primary">Edit</button>  
@@ -45,7 +49,7 @@
                 </form>
               </td>
             </tr>
-          <% } %>
+          <% } } %>
         </tbody>
       </table>
     </main>
