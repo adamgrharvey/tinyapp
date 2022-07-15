@@ -16,6 +16,7 @@ There are security features built-in to prevent unauthorized access to custom UR
 - EJS
 - bcryptjs
 - cookie-session
+- method-override
 
 ## Getting Started
 

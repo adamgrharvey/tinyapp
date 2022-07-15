@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs');
 const app = express();
 const PORT = 8080;
 const helper = require('./helpers');
-var methodOverride = require('method-override')
+const methodOverride = require('method-override')
 
 app.set("view engine", "ejs");
 
