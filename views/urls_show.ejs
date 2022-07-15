@@ -28,7 +28,7 @@
         <h3 class=><b>Edit</b></h3>
         <p>Ensure you use a complete address. i.e. http://www.google.com</p>
         <main style="margin: 1em;">
-          <form class="card text-center" action="/urls/<%= URLid %>" method="POST">
+          <form class="card text-center" action="/urls/<%= URLid %>?_method=PUT" method="POST">
             <div class="card-footer">
               <label for="longURL">New URL:</label>
               <input

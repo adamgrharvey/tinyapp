@@ -4,6 +4,7 @@ const bcrypt = require('bcryptjs');
 const app = express();
 const PORT = 8080;
 const helper = require('./helpers');
+var methodOverride = require('method-override')
 
 app.set("view engine", "ejs");
 
@@ -14,6 +15,7 @@ const urlDatabase = {
 const userDatabase = {
 };
 
+app.use(methodOverride('_method'))
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieSession({
   name: 'session',
@@ -21,10 +23,9 @@ app.use(cookieSession({
 
 }));
 //
-// POST
+// DELETE
 //
-app.post("/urls/:id/delete", (req, res) => {
-
+app.delete("/urls/:id/", (req, res) => {
   // check if urlDatabase[req.params.id].userID === req.cookies.user_id
   if (urlDatabase[req.params.id].userID === req.session.user_id) {
     delete urlDatabase[req.params.id];
@@ -34,7 +35,24 @@ app.post("/urls/:id/delete", (req, res) => {
   }
 });
 
-app.post("/register", (req, res) => {
+//
+// PUT
+//
+app.put("/urls/:id/", (req, res) => {
+  // is there someone signed in?
+  // if not, tell them to login
+  if (req.session.user_id === undefined) {
+    res.status(403).send('Login to edit URLs.\n');
+    // otherwise...
+  } else {
+    // update the URL settings.
+    urlDatabase[req.params.id].longURL = req.body.longURL;
+    urlDatabase[req.params.id].userID = req.session.user_id;
+    res.redirect("/urls");
+  }
+});
+
+app.put("/register", (req, res) => {
   
   // check if email exists
   // if the email is already an account, throw 400
@@ -62,21 +80,24 @@ app.post("/register", (req, res) => {
   }
 });
 
-app.post("/urls/:id/", (req, res) => {
-  // is there someone signed in?
-  // if not, tell them to login
-  if (req.session.user_id === undefined) {
-    res.status(403).send('Login to edit URLs.\n');
-    // otherwise...
+app.put("/login", (req, res) => {
+
+  //check if account exists and the password is correct, log them in
+  // else make send them status 403.
+  let checkUser = helper.getUserByEmail(req.body.email, userDatabase);
+  if (checkUser !== null) {
+    if (checkUser.email === req.body.email && bcrypt.compareSync(req.body.password, checkUser.password)) {
+      req.session.user_id = checkUser.user_id;
+      res.redirect("/urls");
+    } else {
+      res.sendStatus(403);
+    }
   } else {
-    // update the URL settings.
-    urlDatabase[req.params.id].longURL = req.body.longURL;
-    urlDatabase[req.params.id].userID = req.session.user_id;
-    res.redirect("/urls");
+    res.sendStatus(403);
   }
 });
 
-app.post("/urls", (req, res) => {
+app.put("/urls", (req, res) => {
   // is there someone signed in?
   // if not, tell them to login
   if (req.session.user_id === undefined) {
@@ -111,25 +132,11 @@ app.post("/urls", (req, res) => {
 
 });
 
-app.post("/login", (req, res) => {
 
-  //check if account exists and the password is correct, log them in
-  // else make send them status 403.
-  let checkUser = helper.getUserByEmail(req.body.email, userDatabase);
-  if (checkUser !== null) {
-    if (checkUser.email === req.body.email && bcrypt.compareSync(req.body.password, checkUser.password)) {
-      req.session.user_id = checkUser.user_id;
-      res.redirect("/urls");
-    } else {
-      res.sendStatus(403);
-    }
-  } else {
-    res.sendStatus(403);
-  }
-});
 // //
 // GET
-//
+// //
+
 app.get('/', (req, res) => {
   // check if someone is signed in.
   // if they are, send to URLs.
